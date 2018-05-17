@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import $ from "jquery";
+import axios from 'axios'
 console.log(React.version);
 var currentTime = new Date();
 console.log('The current time is: ' + currentTime);
@@ -22,50 +23,41 @@ class Login extends React.Component {
       userid: "",
       password: "",
       submitted: false
-    }
+  }
     
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-  }
+    }
 
-  handleChange(event) {
-    this.setState({value: event.target.value});
-  }
+    handleChange(event, input) {
+      switch(input) {
+        case 'username':
+          this.setState({userid: event.target.value})
+        break;
+        case 'password':
+          this.setState({password: event.target.value})
+      }
+    }
 
-  handleSubmit(e) {
-   
-    e.preventDefault();
-  	  	        		
-	  var formData = {
-	  	              "userId"    : $('input[name=userid]').val(),//$('input[name=userid]').val()
-	  	              "password"  : $('input[name=password]').val()//$('input[name=password]').val()
-	  	            };
-	  	              		
-	  	              			
-	  var jsondata = JSON.stringify(formData);
-	  	  console.log(jsondata);
-    //alert("test" +jsondata);
 
-    fetch('http://', {
-                method: 'POST',
-                headers : new Headers(),
-                body:JSON.stringify({jsondata})
-            })
-            .then((res) => res.json())
-            .then((data) => console.log(data))
-            .catch((err)=>console.log(err))
+    handleSubmit(e) {
+      e.preventDefault()
+      axios.post('http://localhost:3500/login', {
+        username: this.state.userid,
+        password: this.state.password 
+      }).then(response => {
+        const data = response.data
+        const user = data.username,
+              pass = data.password
+        if (user === this.state.userid && pass === this.state.password) {
+          this.setState({submitted: true})
         }
-      //done(Login.function(data)
-      // {
-      // this.setState({});
-      // console.log(this.state.data);
-      // }
-     
+      }).catch(err => {
+        console.log(err)
+      })
+    }
   
-    }  
-  
-
     render() {
     // const { loggingIn } = this.props;
     // const { userid, password, submitted } = this.state;
@@ -92,6 +84,7 @@ class Login extends React.Component {
                 id="userid"
                 type="text"
                 required
+                onChange={event => this.handleChange(event, 'username')}
               />
             </div>
 
@@ -106,6 +99,7 @@ class Login extends React.Component {
                 className="form-control"
                 placeholder="Password"
                 required
+                onChange={event => this.handleChange(event, 'password')}
               />
             </div>
 
@@ -128,6 +122,11 @@ class Login extends React.Component {
               </div>
             </div>
           </div>
+        {(() => {
+          if (this.state.submitted) {
+            return <p>Login succeed</p>
+          }
+        })()}
         </div>
       </div>
  
